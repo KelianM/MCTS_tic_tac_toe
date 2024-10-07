@@ -106,7 +106,7 @@ def MCTS_UCB(start_state, player, c = 1.414, max_iters=100):
         while node.is_fully_expanded() and not node.is_terminal():
             model.set_state(node.state)
             opposition_turn = model.current_player != player
-            node = max(node.children, key=lambda child: ucb_score(child, c, parent_visits=node.visits, inverted=opposition_turn))
+            node = max(node.children, key=lambda child: ucb_score(child, c, parent_visits=node.visits, opposition_turn=opposition_turn))
             node.visits += 1
         # Special terminal case, no expansion and simulation
         if node.is_terminal():
