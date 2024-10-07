@@ -11,6 +11,23 @@ class TicTacToe:
         self.board.fill(0)
         self.current_player = 1
     
+    def normalize_state(self):
+        board_2d = self.board.reshape((3, 3))
+        # Generate all transformations: rotations (0, 90, 180, 270) and reflections (vertical, horizontal)
+        transformations = [
+            board_2d,
+            np.rot90(board_2d, 1),
+            np.rot90(board_2d, 2),
+            np.rot90(board_2d, 3),
+            np.fliplr(board_2d),
+            np.flipud(board_2d),
+            np.rot90(np.fliplr(board_2d), 1),
+            np.rot90(np.flipud(board_2d), 1)
+        ]
+        # Find the lexicographically smallest transformation as the normalized state
+        min_state = min(transformations, key=lambda x: x.flatten().tolist())
+        return min_state.flatten()
+    
     def take_action(self, index):
         # Take an action and return new state, reward
         if self.board[index] != 0:
@@ -57,8 +74,3 @@ class TicTacToe:
         print("\n".join(
             [" ".join([symbols[self.board[j]] for j in range(i, i + 3)]) for i in range(0, 9, 3)]
         ))
-
-# Example usage:
-# game = TicTacToe()
-# game.take_action(0)
-# game.print_board()
