@@ -7,6 +7,10 @@ USE_UCB = True
 MAX_ITERS = 1000  # Constant for the number of MCTS iterations
 EPSILON = 0.25
 C = 1.414
+SEED = 42
+
+random.seed(SEED)
+np.random.seed(SEED)
 
 def play_tic_tac_toe():
     # Initialize the game and variables

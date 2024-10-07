@@ -10,7 +10,7 @@ class Node:
         self.action = action  # RAction taken to reach the node
         self.children = []  # List of child nodes
         self.visits = 0  # Number of times this node has been visited
-        self.value = 0  # Estimated value of this node
+        self.num_wins = 0 # Number of wins (+1 for wins -1 for losses)
         model = TicTacToe()
         model.set_state(state)
         self.untried_actions = model.valid_moves()  # List of actions that have not been tried yet from this state
@@ -21,6 +21,11 @@ class Node:
     def is_fully_expanded(self):
         return len(self.untried_actions) == 0
     
+    def value(self):
+        if self.visits == 0:
+            return 0
+        return self.num_wins/self.visits
+
     def is_terminal(self):
         model = TicTacToe()
         model.set_state(self.state)
@@ -30,22 +35,37 @@ def MCTS_epsilon_greedy(start_state, player, epsilon = 0.1, max_iters=100):
     root = Node(state=start_state)
     for i in range(max_iters):
         ######## Select ########
+        model = TicTacToe()
         node = root
+        node.visits += 1
         while node.is_fully_expanded() and not node.is_terminal():
             if np.random.rand() < epsilon:
                 # Exploration: choose a random child
                 node = random.choice(node.children)
             else:
                 # Exploitation: choose child with highest value
-                node = max(node.children, key=lambda x: x.value)
+                node = max(node.children, key=lambda x: x.value())
+            node.visits += 1
+        # Special terminal case, no expansion and simulation
+        if node.is_terminal():
+            model.set_state(node.state)
+            # Terminal reward for player (inverted when playing player 2 (O))
+            _, reward = model.is_finished()
+            reward = reward if player == 1 else reward * -1
+            ######## Backup ########
+            # Backpropagate the reward from the expanded node
+            current_node = node
+            while current_node is not None:
+                current_node.num_wins += reward
+                current_node = current_node.parent
         if not node.is_fully_expanded():
             ######## Expand ########
             action = random.choice(node.untried_actions)
-            model = TicTacToe()
             model.set_state(node.state)
             state, reward = model.take_action(action)
             node.untried_actions.remove(action)
             child_node = Node(state=state, parent=node, action=action)
+            child_node.visits += 1
             node.add_child(child_node)
 
             ######## Simulate ########
@@ -61,10 +81,10 @@ def MCTS_epsilon_greedy(start_state, player, epsilon = 0.1, max_iters=100):
             # Backpropagate the reward from the expanded node
             current_node = child_node
             while current_node is not None:
-                current_node.value += reward
+                current_node.num_wins += reward
                 current_node = current_node.parent
     # Return greedy selection
-    greedy_node = max(root.children, key=lambda x: x.value)
+    greedy_node = max(root.children, key=lambda x: x.value())
     return greedy_node.action
 
 def ucb_score(node, c, parent_visits):
@@ -72,7 +92,7 @@ def ucb_score(node, c, parent_visits):
     if node.visits == 0:
         return float('inf')
     # Calculate UCB1 score: exploitation + exploration
-    exploitation = node.value  # Average reward collected at this node
+    exploitation = node.value()  # Average reward collected at this node
     exploration = c * np.sqrt(np.log(parent_visits) / node.visits)
     return exploitation + exploration
 
@@ -80,20 +100,33 @@ def MCTS_UCB(start_state, player, c = 1.414, max_iters=100):
     root = Node(state=start_state)
     for t in range(max_iters):
         ######## Select ########
+        model = TicTacToe()
         node = root
         node.visits += 1
         while node.is_fully_expanded() and not node.is_terminal():
             # Exploitation: choose child with highest value
             node = max(node.children, key=lambda child: ucb_score(child, c, parent_visits=node.visits))
             node.visits += 1
+        # Special terminal case, no expansion and simulation
+        if node.is_terminal():
+            model.set_state(node.state)
+            # Terminal reward for player (inverted when playing player 2 (O))
+            _, reward = model.is_finished()
+            reward = reward if player == 1 else reward * -1
+            ######## Backup ########
+            # Backpropagate the reward from the expanded node
+            current_node = node
+            while current_node is not None:
+                current_node.num_wins += reward
+                current_node = current_node.parent
         if not node.is_fully_expanded():
             ######## Expand ########
             action = random.choice(node.untried_actions)
-            model = TicTacToe()
             model.set_state(node.state)
             state, reward = model.take_action(action)
             node.untried_actions.remove(action)
             child_node = Node(state=state, parent=node, action=action)
+            child_node.visits += 1
             node.add_child(child_node)
 
             ######## Simulate ########
@@ -109,9 +142,9 @@ def MCTS_UCB(start_state, player, c = 1.414, max_iters=100):
             # Backpropagate the reward from the expanded node
             current_node = child_node
             while current_node is not None:
-                current_node.value += reward
+                current_node.num_wins += reward
                 current_node = current_node.parent
     # Return greedy selection
-    greedy_node = max(root.children, key=lambda x: x.value)
+    greedy_node = max(root.children, key=lambda x: x.value())
     return greedy_node.action
     
