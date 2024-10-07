@@ -24,7 +24,7 @@ class Node:
     def is_terminal(self):
         model = TicTacToe()
         model.set_state(self.state)
-        model.is_finished()[0]
+        return model.is_finished()[0]
 
 def MCTS_epsilon_greedy(start_state, player, epsilon = 0.1, max_iters=100):
     root = Node(state=start_state)
@@ -44,9 +44,9 @@ def MCTS_epsilon_greedy(start_state, player, epsilon = 0.1, max_iters=100):
             model = TicTacToe()
             model.set_state(node.state)
             state, reward = model.take_action(action)
+            node.untried_actions.remove(action)
             child_node = Node(state=state, parent=node, action=action)
             node.add_child(child_node)
-            node = child_node
 
             ######## Simulate ########
             simulate_state = child_node.state
@@ -81,6 +81,7 @@ def MCTS_UCB(start_state, player, c = 1.414, max_iters=100):
     for t in range(max_iters):
         ######## Select ########
         node = root
+        node.visits += 1
         while node.is_fully_expanded() and not node.is_terminal():
             # Exploitation: choose child with highest value
             node = max(node.children, key=lambda child: ucb_score(child, c, parent_visits=node.visits))
@@ -91,9 +92,9 @@ def MCTS_UCB(start_state, player, c = 1.414, max_iters=100):
             model = TicTacToe()
             model.set_state(node.state)
             state, reward = model.take_action(action)
+            node.untried_actions.remove(action)
             child_node = Node(state=state, parent=node, action=action)
             node.add_child(child_node)
-            node = child_node
 
             ######## Simulate ########
             simulate_state = child_node.state
