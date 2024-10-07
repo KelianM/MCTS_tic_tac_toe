@@ -2,7 +2,6 @@ import numpy as np
 import random
 from tic_tac_toe import TicTacToe
 
-model = TicTacToe()
 
 class Node:
     def __init__(self, state, action=None, parent=None):
@@ -12,6 +11,7 @@ class Node:
         self.children = []  # List of child nodes
         self.visits = 0  # Number of times this node has been visited
         self.value = 0  # Estimated value of this node
+        model = TicTacToe()
         model.set_state(state)
         self.untried_actions = model.valid_moves()  # List of actions that have not been tried yet from this state
 
@@ -22,8 +22,9 @@ class Node:
         return len(self.untried_actions) == 0
     
     def is_terminal(self):
+        model = TicTacToe()
         model.set_state(self.state)
-        model.is_finished()
+        model.is_finished()[0]
 
 def MCTS(start_state, player, epsilon = 0.1, max_iters=100):
     root = Node(state=start_state)
@@ -40,17 +41,17 @@ def MCTS(start_state, player, epsilon = 0.1, max_iters=100):
         if not node.is_fully_expanded():
             ######## Expand ########
             action = random.choice(node.untried_actions)
+            model = TicTacToe()
             model.set_state(node.state)
             state, reward = model.take_action(action)
-            if not model.is_finished():
-                state, reward = model.take_action(random.choice(model.valid_moves())) # random reply by opponent
             child_node = Node(state=state, parent=node, action=action)
             node.add_child(child_node)
+            node = child_node
 
             ######## Simulate ########
             simulate_state = child_node.state
             model.set_state(simulate_state)  # Set simulation state
-            while not model.is_finished():
+            while not model.is_finished()[0]:
                 # Random rollout
                 state, reward = model.take_action(random.choice(model.valid_moves()))
             

@@ -16,6 +16,11 @@ class TicTacToe:
 
     def set_state(self, board_list):
         self.board = np.array(board_list)
+        # Count the number of X's and O's
+        x_count = np.sum(self.board == 1)
+        o_count = np.sum(self.board == 2)
+        # If X's count is more, then it's O's turn, otherwise it's X's turn
+        self.current_player = 2 if x_count > o_count else 1
 
     def normalize_state(self):
         board_2d = self.board.reshape((3, 3))

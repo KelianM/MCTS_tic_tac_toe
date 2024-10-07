@@ -3,7 +3,8 @@ import random
 from tic_tac_toe import TicTacToe
 from MCTS import MCTS
 
-MAX_ITERS = 100  # Constant for the number of MCTS iterations
+MAX_ITERS = 10000  # Constant for the number of MCTS iterations
+EPSILON = 0.25
 
 def play_tic_tac_toe():
     # Initialize the game and variables
@@ -43,8 +44,8 @@ def play_tic_tac_toe():
         else:
             # AI's turn
             print("AI is thinking...")
-            state = game.get_state().tolist()
-            ai_move = MCTS(state, player=ai_player, max_iters=MAX_ITERS)
+            state = game.get_state()
+            ai_move = MCTS(state, player=ai_player, epsilon=EPSILON, max_iters=MAX_ITERS)
             game.take_action(ai_move)
             print(f"AI chose position {ai_move + 1}.")
         
