@@ -16,7 +16,7 @@ class Node:
         self.untried_actions = model.valid_moves()  # List of actions that have not been tried yet from this state
 
     def add_child(self, child_node):
-        self.children = child_node
+        self.children.append(child_node)
 
     def is_fully_expanded(self):
         return len(self.untried_actions) == 0
