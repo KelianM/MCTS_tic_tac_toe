@@ -11,6 +11,12 @@ class TicTacToe:
         self.board.fill(0)
         self.current_player = 1
     
+    def get_state(self):
+        return self.board
+
+    def set_state(self, board_list):
+        self.board = np.array(board_list)
+
     def normalize_state(self):
         board_2d = self.board.reshape((3, 3))
         # Generate all transformations: rotations (0, 90, 180, 270) and reflections (vertical, horizontal)
