@@ -1,10 +1,12 @@
 import numpy as np
 import random
 from tic_tac_toe import TicTacToe
-from MCTS import MCTS
+from MCTS import MCTS_epsilon_greedy, MCTS_UCB
 
-MAX_ITERS = 10000  # Constant for the number of MCTS iterations
+USE_UCB = True
+MAX_ITERS = 1000  # Constant for the number of MCTS iterations
 EPSILON = 0.25
+C = 1.414
 
 def play_tic_tac_toe():
     # Initialize the game and variables
@@ -45,7 +47,10 @@ def play_tic_tac_toe():
             # AI's turn
             print("AI is thinking...")
             state = game.get_state()
-            ai_move = MCTS(state, player=ai_player, epsilon=EPSILON, max_iters=MAX_ITERS)
+            if USE_UCB:
+                ai_move = MCTS_UCB(state, player=ai_player, c=C, max_iters=MAX_ITERS)
+            else:
+                ai_move = MCTS_epsilon_greedy(state, player=ai_player, epsilon=EPSILON, max_iters=MAX_ITERS)
             game.take_action(ai_move)
             print(f"AI chose position {ai_move + 1}.")
         
